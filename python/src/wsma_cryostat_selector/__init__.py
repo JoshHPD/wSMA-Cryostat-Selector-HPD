@@ -6,7 +6,7 @@ from pymodbus.client.sync import ModbusTcpClient
 default_IP = "192.168.42.100"
 
 
-class SelectorWheel(object):
+class Selector(object):
     """Class for communicating with the wSMA Selector Wheel Controller.
 
     The SelectorWheel object wraps a pymodbus.ModbusTcpClient instance which
@@ -186,3 +186,89 @@ class SelectorWheel(object):
         self._speed = self.get_speed()
         self._delta = self.get_delta()
         self._time = self.get_time()
+
+
+class DummySelector(Selector):
+    """A dummy selector wheel that just stores information without attempting
+    any communication, for testing purposes"""
+    def __init__(self, ip_address="0.0.0.0"):
+        """Create a DummySelector object for testing purposes.
+
+        Args:
+            ip_address (str): IP Address of the controller to communicate with
+        """
+        self._position = 1
+        self._speed = 1
+        self._delta = 42
+        self._time = 35
+
+    def get_position(self):
+        """Read the current setpoint position from self._position
+
+        Returns:
+            int: current setpoint position."""
+        return self._position
+
+    def get_speed(self):
+        """Read the current speed setting from self._speed
+
+        Returns:
+            int: current speed setting."""
+        return self._speed
+
+    def get_status(self):
+        """Read the current status from the controller. Dummy version is always 0.
+
+        Returns:
+            int: current status. Either 1 for motion in progress or 0 for motion complete."""
+        return 0
+
+    def get_delta(self):
+        """Read the current position error from self._delta.
+
+        Returns:
+            int: current position error in degrees x 100."""
+        return self._delta
+
+    def get_time(self):
+        """Read the time take for the last movement from self._time.
+
+        Returns:
+            int: time taken for the last move in milliseconds."""
+        return self._time
+
+    def set_position(self, position):
+        """Set the _position for the wheel.
+
+        Dummy version changes the position and increments _delta by the speed
+
+        Args:
+            position (int): Position setting. One of 1, 2, 3, or 4.
+        """
+        if position in range(1,5):
+            self._position = position
+            self._delta = self._delta + self._speed
+        else:
+            raise ValueError("Illegal position {} passed to Selector.set_position()".format(position))
+
+    def set_speed(self, speed):
+        """Set the speed of motion for the wheel.
+
+        Args:
+            speed (int): Speed setting. One of 1 (slowest), 2 or 3 (fastest). 1 and 2 are more reliable.
+        """
+        if speed in range(1,4):
+            self._speed = speed
+        else:
+            raise ValueError("Illegal speed {} passed to Selector.set_speed()".format(position))
+
+    def home(self):
+        """Move the wheel to the home position, and then to position 1.
+        Also sets speed to 1.
+
+        Dummy version sets position to 1, speed to 1 and resets delta
+
+        Selector wheel controller automatically homes on power on."""
+        self._position = 1
+        self._speed = 1
+        self._delta = 42
