@@ -2,7 +2,23 @@
 Usage
 =====
 
-To use wSMA-Cryostat-Selector in a project::
+------------
+Command Line
+------------
+
+To move a selector wheel at <ip_address> to a position from the command line, run::
+
+    selector -a <ip_address> position
+
+For more options, see the help::
+
+    selector -h
+
+-----------
+Programming
+-----------
+
+To use wSMA-Cryostat-Selector in a larger Python project::
 
 	import wsma_cryostat_selector
 
