@@ -2,6 +2,10 @@
 Installation
 ============
 
-At the command line::
+Download the repo from Github using::
 
-    pip install wsma-cryostat-selector
+    git clone https://github.com/Smithsonian/wSMA-Cryostat-Selector.git
+
+Change to the wSMA-Cryostat-Selector/python directory and run::
+
+    python setup.py install
