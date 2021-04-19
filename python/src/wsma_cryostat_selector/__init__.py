@@ -39,7 +39,7 @@ class Selector(object):
             ip_address (str): IP Address of the controller to communicate with
         """
         #: (:obj:`ModbusTcpClient`): Client for communicating with the controller
-        self._client = ModbusTcpClient(ip_address)
+        self._client = ModbusTcpClient(ip_address, timeout=1000)
 
         #: int: Current _position of the Selector Wheel
         self._position = self.get_position()
