@@ -26,7 +26,13 @@ class Selector(object):
 
     #: int: address of the controller's _position error register.
     _delta_addr = 1005
-
+    
+    #: int: address of the resolver turns register
+    _turns_addr = 1006
+    
+    #: int: address of the resolver shaft position register
+    _turns_addr = 1007
+    
     _time_step = 0.25
 
     def __init__(self, ip_address=default_IP):

@@ -7,13 +7,21 @@
 '***************************************************************************
 #SETUP
 SIA=1,29,14,-1<10>1; 'SSI absolute encoder setting string
+'SI A:
+' Enable SSI = 1 (on)
+' Number of data and status bits = 28
+' Reserved = 14? - should be 0?
+' Number of status bits = -1 (one bit before position bits)
+' Clock divider frequency = 10
+' Data encoding = 1 (binary encoding)
+
 YCA=16384;	' 16384 counts per revolution
 
 MT -2.5;		' active high pulses, use -2.5 to reverse direction
-						' we are going say counter-clockwise (ccw) motion is positive
-						' clock-wise is negative for both stepper and "net resolver" motion
+					' we are going say counter-clockwise (ccw) motion is positive
+					' clock-wise is negative for both stepper and "net resolver" motion
 
-LCA=15;			'	15 samples after moving, go to 25% current for holding torque
+LCA=15;		'	15 samples after moving, go to 25% current for holding torque
 
 DM A[6];		'dimension integer register array, length 10 16-bit uints
 						'  A[0], current position - valid values are: 1-4 obvious moves, 5 is home, 6 is shutdown
