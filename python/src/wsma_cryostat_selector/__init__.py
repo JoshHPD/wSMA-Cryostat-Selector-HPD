@@ -47,17 +47,8 @@ class Selector(object):
         #: (:obj:`ModbusTcpClient`): Client for communicating with the controller
         self._client = ModbusTcpClient(ip_address, timeout=1000)
 
-        #: int: Current _position of the Selector Wheel
-        self._position = self.get_position()
-
-        #: int: Current speed setting of the Selector Wheel
-        self._speed = self.get_speed()
-
-        #: int: Current _position error of the Selector Wheel. Equal to the error in degrees x 100.
-        self._delta = self.get_delta()
-
-        #: int: Last movement time in ms.
-        self._time = self.get_time()
+        self.update()
+        
 
     @property
     def position(self):
@@ -78,7 +69,31 @@ class Selector(object):
     def time(self):
         """int: Time taken for last commanded move. Value is the time take in milliseconds."""
         return self._time
-
+        
+    @property
+    def turns(self):
+        """int: Turns recorded on the resolver->encoder interface"""
+        return self._turns
+        
+    @property
+    def shaft(self):
+        """int: Shaft position recorded on the resolver->encoder interface"""
+        return self._shaft
+        
+    def update_resolver(self):
+        """Update the position recorded on the resolver."""
+        self.get_turns()
+        self.get_shaft()
+        
+    def update(self):
+        """Update the selector wheel status"""
+        self.get_position()
+        self.get_status()
+        self.get_speed()
+        self.get_delta()
+        self.get_time()
+        self.update_resolver()
+        
     def get_position(self):
         """Read the current setpoint position from the controller.
 
@@ -129,6 +144,28 @@ class Selector(object):
         Returns:
             int: time taken for the last move in milliseconds."""
         r = self._client.read_input_registers(self._time_addr)
+        if r.isError():
+            raise RuntimeError("Could not get last movement time")
+        else:
+            return r.registers[0]
+            
+    def get_turns(self):
+        """Read the number of turns indicated on the resolver>encoder interface.
+
+        Returns:
+            int: number of turns on the resolver"""
+        r = self._client.read_input_registers(self._turns_addr)
+        if r.isError():
+            raise RuntimeError("Could not get last movement time")
+        else:
+            return r.registers[0]
+            
+    def get_shaft(self):
+        """Read the shaft position indicated on the resolver>encoder interface.
+
+        Returns:
+            int: shaft position on the resolver"""
+        r = self._client.read_input_registers(self._turns_addr)
         if r.isError():
             raise RuntimeError("Could not get last movement time")
         else:

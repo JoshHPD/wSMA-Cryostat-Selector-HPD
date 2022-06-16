@@ -71,3 +71,6 @@ def main(args=None):
         print("Selector speed setting    : {}".format(sel.speed))
         print("Selector position error   : {:.2f} deg".format(sel.delta/100.0))
         print("Time for last move        : {} ms".format(sel.time))
+        print("Resolver turns            : {:d}".format(int(sel.turns))
+        print("Resolver position         : {:d}".format(int(sel.shaft))
+        
