@@ -15,7 +15,12 @@ Why does this file exist, and why not put this in __main__?
   Also see (1) from http://click.pocoo.org/5/setuptools/#setuptools-integration
 """
 import argparse
+from time import sleep
+from os import system
+import datetime
+
 import wsma_cryostat_selector
+
 
 default_ip = '192.168.42.100'
 
@@ -32,7 +37,13 @@ parser.add_argument("-0", "--home", action="store_true",
                          "and then to requested position if given.")
 parser.add_argument("-s", "--speed", type=int, choices=[1,2,3],
                     help="Speed to move at. "
-                         "Does not affect the speed of homing operations.")
+                         "Does not affect the speed of homing operation")
+parser.add_argument("-l", "--log", type=int, 
+                    help="Log selector wheel state to file at intervals of <l> seconds")
+parser.add_argument("-f", "--log-file", type=str,
+                    help="File to log selector wheel state to")
+
+                         
 parser.add_argument("position", type=int, choices=[1,2,3,4], nargs="?",
                     help="The wheel position to move to.")
 
@@ -64,13 +75,49 @@ def main(args=None):
         sel.set_position(args.position)
         if args.verbosity:
             print("Done")
+            
+    if args.log:
+        if args.log_file:
+            filename = arg.log_file
+            logger(sel, args.log, filename)
+        else:
+            logger(sel, args.log)
+            
     else:
         print("Current selector position : {}".format(sel.position))
+
 
     if args.verbosity:
         print("Selector speed setting    : {}".format(sel.speed))
         print("Selector position error   : {:.2f} deg".format(sel.delta/100.0))
         print("Time for last move        : {} ms".format(sel.time))
-        print("Resolver turns            : {:d}".format(int(sel.turns))
-        print("Resolver position         : {:d}".format(int(sel.shaft))
-        
+        print("Resolver turns            : {:d}".format(int(sel.turns)))
+        print("Resolver position         : {:d}".format(int(sel.shaft)))
+
+
+def logger(sel, interval, filename="selector.log"):
+    """Log the selector wheel status to filename once per <interval> seconds."""
+    with open(filename, 'a') as logfile:
+        logfile.write("#Timestamp, position, speed, position delta, time for last move, resolver turns, resolver position")
+        while True:
+            if not sel.connected:
+                sel.open()
+            try:
+                sel.update()
+            except:
+                # Skip this reading if there is an error
+                sleep(interval)
+                continue
+            sel.close()
+            now = datetime.datetime.now()
+            system('clear')
+            print(now)
+            print("Current selector position : {}".format(sel.position))
+            print("Selector speed setting    : {}".format(sel.speed))
+            print("Selector position error   : {:.2f} deg".format(sel.delta/100.0))
+            print("Time for last move        : {} ms".format(sel.time))
+            print("Resolver turns            : {:d}".format(int(sel.turns)))
+            print("Resolver position         : {:d}".format(int(sel.shaft)))
+            logfile.write(f"{now}, {sel.position}, {sel.speed}, {sel.delta}, {sel.time}, {sel.turns:d}, {sel.shaft}"+"\n")
+            logfile.flush()
+            sleep(interval)

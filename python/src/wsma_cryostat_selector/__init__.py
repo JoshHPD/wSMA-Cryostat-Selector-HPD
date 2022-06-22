@@ -31,7 +31,7 @@ class Selector(object):
     _turns_addr = 1006
     
     #: int: address of the resolver shaft position register
-    _turns_addr = 1007
+    _shaft_addr = 1007
     
     _time_step = 0.25
 
@@ -47,13 +47,46 @@ class Selector(object):
         #: (:obj:`ModbusTcpClient`): Client for communicating with the controller
         self._client = ModbusTcpClient(ip_address, timeout=1000)
 
-        self.update()
+        #: int: Current _position of the Selector Wheel
+        self._position = self.get_position()
+
+        #: int: Current speed setting of the Selector Wheel
+        self._speed = self.get_speed()
+
+        #: int: Current _position error of the Selector Wheel. Equal to the error in degrees x 100.
+        self._delta = self.get_delta()
+
+        #: int: Last movement time in ms.
+        self._time = self.get_time()
         
+        #: int: Turns recorded on the resolver->encoder interface
+        self._turns = self.get_turns()
+        
+        #: int: Shaft position recorded on the resolver->encoder interface
+        self._shaft = self.get_shaft()
+        
+    def open(self):
+        """Open the connection to the Modbus server"""
+        self._client.connect()
+        
+    def close(self):
+        """Close the connection to the Modbus server"""
+        self._client.close()
+
+    @property
+    def connected(self):
+        """bool: Connection status of the Modbus connection"""
+        return self._client.is_socket_open()
 
     @property
     def position(self):
         """int: Position of the Selector Wheel. One of 1-4."""
         return self._position
+
+    @property
+    def status(self):
+        """int: Status of the Selector Wheel.  0 for stationary, 1 for moving."""
+        return self._status
 
     @property
     def delta(self):
@@ -94,6 +127,7 @@ class Selector(object):
         self.get_time()
         self.update_resolver()
         
+
     def get_position(self):
         """Read the current setpoint position from the controller.
 
@@ -103,7 +137,8 @@ class Selector(object):
         if r.isError():
             raise RuntimeError("Could not get current position")
         else:
-            return r.registers[0]
+            self._position = r.registers[0]
+            return self.position
 
     def get_status(self):
         """Read the current status from the controller.
@@ -114,7 +149,8 @@ class Selector(object):
         if r.isError():
             raise RuntimeError("Could not get current status")
         else:
-            return r.registers[0]
+            self._status = r.registers[0]
+            return self.status
 
     def get_speed(self):
         """Read the current speed setting from the controller.
@@ -125,7 +161,8 @@ class Selector(object):
         if r.isError():
             raise RuntimeError("Could not get current speed setting")
         else:
-            return r.registers[0]
+            self._speed = r.registers[0]
+            return self.speed
 
     def get_delta(self):
         """Read the current position error from the controller.
@@ -136,7 +173,8 @@ class Selector(object):
         if r.isError():
             raise RuntimeError("Could not get current _position error")
         else:
-            return r.registers[0]
+            self._delta = r.registers[0]
+            return self.delta
 
     def get_time(self):
         """Read the time take for the last movement from the controller.
@@ -147,7 +185,8 @@ class Selector(object):
         if r.isError():
             raise RuntimeError("Could not get last movement time")
         else:
-            return r.registers[0]
+            self._time = r.registers[0]
+            return self.time
             
     def get_turns(self):
         """Read the number of turns indicated on the resolver>encoder interface.
@@ -156,20 +195,22 @@ class Selector(object):
             int: number of turns on the resolver"""
         r = self._client.read_input_registers(self._turns_addr)
         if r.isError():
-            raise RuntimeError("Could not get last movement time")
+            raise RuntimeError("Could not get turns")
         else:
-            return r.registers[0]
+            self._turns = r.registers[0]
+            return self.turns
             
     def get_shaft(self):
         """Read the shaft position indicated on the resolver>encoder interface.
 
         Returns:
             int: shaft position on the resolver"""
-        r = self._client.read_input_registers(self._turns_addr)
+        r = self._client.read_input_registers(self._shaft_addr)
         if r.isError():
-            raise RuntimeError("Could not get last movement time")
+            raise RuntimeError("Could not shaft position")
         else:
-            return r.registers[0]
+            self._shaft = r.registers[0]
+            return self.shaft
 
     def set_speed(self, speed):
         """Set the speed of motion for the wheel.
@@ -207,9 +248,7 @@ class Selector(object):
         while self.get_status():
             sleep(self._time_step/4)
 
-        self._position = self.get_position()
-        self._delta = self.get_delta()
-        self._time = self.get_time()
+        self.update()
 
     def home(self):
         """Move the wheel to the home position, and then to position 1.
@@ -225,10 +264,7 @@ class Selector(object):
         while self.get_status():
             sleep(self._time_step/4)
 
-        self._position = self.get_position()
-        self._speed = self.get_speed()
-        self._delta = self.get_delta()
-        self._time = self.get_time()
+        self.update()
 
 
 class DummySelector(Selector):

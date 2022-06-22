@@ -57,6 +57,9 @@ v1=0
 #EVENTLP
 com_pos=A[0]
 cur_pos=A[1]
+resolv=_TPA
+R[0]=resolv/rres
+R[1]=resolv%rres
 IF(com_pos<>cur_pos)
 IF(com_pos=5);JP#HOME;ENDIF
 IF(com_pos<=1);setpoint=pos1;JP#MOVE;ENDIF
@@ -65,10 +68,6 @@ IF(com_pos=3);setpoint=pos3;JP#MOVE;ENDIF
 IF(com_pos=4);setpoint=pos4;JP#MOVE;ENDIF
 IF(com_pos>6);setpoint=pos4;JP#MOVE;ENDIF
 ELSE
-resolv=_TPA
-R[0]=@RND[resolv/rres]
-R[1]=resolv%rres
-IF(R[1]<8192);R[0]=R[0]+1;ENDIF
 JP#EVENTLP
 ENDIF
 EN
@@ -148,6 +147,9 @@ deltaT=endtime-bgtime
 A[4]=deltaT
 A[1]=A[0]
 A[3]=0
+resolv=_TPA
+R[0]=resolv/rres
+R[1]=resolv%rres
 JP#EVENTLP
 #HOME
 SPslowsp;ACslowAC;DCfastDC
