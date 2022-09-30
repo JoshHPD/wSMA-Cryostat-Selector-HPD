@@ -69,5 +69,5 @@ def main(args=None):
 
     if args.verbosity:
         print("Selector speed setting    : {}".format(sel.speed))
-        print("Selector position error   : {:.2f} deg".format(sel.delta/100.0))
+        print("Selector position error   : {:.2f} deg".format(sel.delta))
         print("Time for last move        : {} ms".format(sel.time))
